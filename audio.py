@@ -1,39 +1,54 @@
+# External imports
 import pyaudio
 import wave
 import struct
 import sys
 import math
 
-class Audio:
+# Internal imports
+import postprocessing.audio_postprocessing
+
+class Audio():
     """
 
     """
     def __init__(self, filename, chunksize, paudio):
+
         filestream = wave.open(filename, "rb")
 
-        self._audiostream = paudio.open(format = paudio.get_format_from_width(filestream.getsampwidth()),  
+        self._audiostream = paudio.open(format = paudio.get_format_from_width(filestream.getsampwidth(), False),  
                 channels = filestream.getnchannels(),  
                 rate = filestream.getframerate(),  
                 output = True)
 
         self.progress = 0.0
         self.pitch = 1.0
-        self.volume = 1.0
+        self.channels = filestream.getnchannels()
+        self.frequency = filestream.getframerate()
+        self.postprocessing = []
+
         self._chunksize = chunksize
+
+        # All the format we accept are signed
+        self._maxvalue = int(pow(2, 8 * filestream.getsampwidth() - 1)) - 1
 
         # We store the data as integers here
         self._audiodata = []
 
         # These formats should work most of the time
         # See: https://docs.python.org/2/library/struct.html#format-characters
-        types = {1: 'B', 2: 'h', 4: 'i'}
-        self._type = types[filestream.getsampwidth()]
-        # Check for system byteorder
+        types = {1: 'b', 2: 'h', 4: 'i'}
         endianness = {"big": '>', "little": '<'}
+
+        # Checl for data type here
+        self._type = types[filestream.getsampwidth()]
+
+        # Check for system byteorder
         self._endianness = endianness[sys.byteorder]
 
         audiodata = filestream.readframes(chunksize)
 
+        # Copy byte data to integer list
         while(audiodata):
             fmt = self._endianness + self._type * int(len(audiodata) / filestream.getsampwidth()) 
             data = struct.unpack(fmt, audiodata)
@@ -52,6 +67,18 @@ class Audio:
         index = math.floor(self.progress)
         count = math.ceil(readout)
         subdata = self._audiodata[index : min(index + count, len(self._audiodata))]
+
+        # Apply pitch processor here
+
+
+        # Apply post-processing here
+        for postprocessor in self.postprocessing:
+            subdata = postprocessor.apply(subdata, self.channels, self.frequency)
+
+        # Check values are in their specified range
+        for i in range(0, len(subdata)):
+            subdata[i] = max(min(subdata[i], self._maxvalue), -self._maxvalue)
+        
         fmt = self._endianness + self._type * len(subdata)
         audiodata = struct.pack(fmt, *subdata)
         self._audiostream.write(audiodata)
