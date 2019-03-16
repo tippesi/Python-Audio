@@ -20,15 +20,10 @@ class ChannelSinePostprocessing(AudioPostprocessing):
         leftVolume = 0.5 * math.sin(deltatime) + 0.5
         rightVolume = 1.0 - leftVolume
 
-        # print(leftVolume)
-
         for i in range(0, len(data)):
-            """
             if i % 2:
                 data[i] = int(float(data[i]) * leftVolume)
             else:
                 data[i] = int(float(data[i]) * rightVolume)
-            """
-            data[i] = data[i] & 255
 
         return data

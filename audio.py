@@ -12,6 +12,7 @@ class Audio():
     """
 
     """
+
     def __init__(self, filename, chunksize, paudio):
 
         filestream = wave.open(filename, "rb")
@@ -23,6 +24,7 @@ class Audio():
 
         self.progress = 0.0
         self.pitch = 1.0
+        self.loop = False
         self.channels = filestream.getnchannels()
         self.frequency = filestream.getframerate()
         self.postprocessing = []
@@ -62,7 +64,14 @@ class Audio():
         self._audiostream.close()
 
     def update(self):
-        self.progress = self.progress % float(len(self._audiodata))        
+        # Check if playback should be in a loop
+        if self.loop:
+            self.progress = self.progress % float(len(self._audiodata))
+        else:
+            if self.progress >= len(self._audiodata):
+                return
+
+        # Depending on the pitch we want to process a different number of samples
         readout = self.pitch * float(self._chunksize)
         index = math.floor(self.progress)
         count = math.ceil(readout)
@@ -75,12 +84,11 @@ class Audio():
         for postprocessor in self.postprocessing:
             subdata = postprocessor.apply(subdata, self.channels, self.frequency)
 
-        # Check values are in their specified range
+        # Check if values are in their specified range
         for i in range(0, len(subdata)):
             subdata[i] = max(min(subdata[i], self._maxvalue), -self._maxvalue)
         
         fmt = self._endianness + self._type * len(subdata)
         audiodata = struct.pack(fmt, *subdata)
-        print(audiodata)
         self._audiostream.write(audiodata)
         self.progress += readout
