@@ -16,7 +16,7 @@ class Audio():
 
         filestream = wave.open(filename, "rb")
 
-        self._audiostream = paudio.open(format = paudio.get_format_from_width(filestream.getsampwidth(), False),  
+        self._audiostream = paudio.open(format = paudio.get_format_from_width(filestream.getsampwidth()),  
                 channels = filestream.getnchannels(),  
                 rate = filestream.getframerate(),  
                 output = True)
@@ -50,7 +50,7 @@ class Audio():
 
         # Copy byte data to integer list
         while(audiodata):
-            fmt = self._endianness + self._type * int(len(audiodata) / filestream.getsampwidth()) 
+            fmt = self._endianness + self._type * int(len(audiodata) / filestream.getsampwidth())
             data = struct.unpack(fmt, audiodata)
             self._audiodata.extend(data)
             audiodata = filestream.readframes(chunksize)
@@ -81,5 +81,6 @@ class Audio():
         
         fmt = self._endianness + self._type * len(subdata)
         audiodata = struct.pack(fmt, *subdata)
+        print(audiodata)
         self._audiostream.write(audiodata)
         self.progress += readout

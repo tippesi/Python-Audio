@@ -1,6 +1,6 @@
-import postprocessing.audio_postprocessing
+from postprocessing.audio_postprocessing import AudioPostprocessing
 
-class VolumePostprocessing(postprocessing.audio_postprocessing.AudioPostprocessing):
+class VolumePostprocessing(AudioPostprocessing):
 
     def __init__(self, volume = 1.0):
         self.volume = volume
