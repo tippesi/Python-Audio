@@ -9,7 +9,7 @@ class ChannelSinePostprocessing(AudioPostprocessing):
         self.starttime = time.clock()
         self.speed = speed
 
-    def apply(self, data, channels, frequency):
+    def apply(self, data, channels, frequency, max):
 
         deltatime = (time.clock() - self.starttime) * self.speed
 
