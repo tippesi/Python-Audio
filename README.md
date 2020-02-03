@@ -4,7 +4,7 @@
 - PyAudio installed
 ## What you get
 - Tiny framework which allows to play with audio effects
-- Easy to integratge postprocessing steps per audio stream
+- Easy to integrate postprocessing steps per audio stream
 - Wave file loading with following formats (Signed 16/8 bit samples)
 ## Example
 Have a look at main.py
